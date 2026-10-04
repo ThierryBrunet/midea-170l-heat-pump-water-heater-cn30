@@ -189,7 +189,7 @@ Acceptance rule used throughout: the **next heater status frame** must move byte
 
 The missing piece is a capture of a **real Midea/Chromagen Wire Monitor / wired controller** talking on CN30: the command frames it sends in the quiet gap between status broadcasts. Until that exists, Home Assistant stays read-only.
 
-See the open GitHub issue on this repository: **CN30 WRITE protocol unknown**.
+See open issue [#1](https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1) (CN30 WRITE protocol unknown).
 
 ---
 

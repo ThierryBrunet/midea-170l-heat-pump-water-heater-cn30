@@ -81,4 +81,5 @@ logger:
 The main controller masters CN30 and broadcasts its status. Copies of that
 broadcast, short `FE AA` frames, and Modbus writes on this header did not move
 byte 29 or the mode pair. Control stays off until a frame is shown to do that
-on the next heater status frame.
+on the next heater status frame. Tracking issue:
+https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1
