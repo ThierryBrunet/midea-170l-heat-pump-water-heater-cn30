@@ -1,0 +1,101 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Midea water heat pump via red CN30",
+        "description": "Read-only status from the residential red 3-pin wire-controller header (CN30), through an Elfin EW-11 transparent TCP bridge. This is not the Modbus integration. The dongle must stay at 600 8N1, UART protocol NONE, half-duplex, GapTime 1000. Nothing else may own TCP 502. The heater broadcasts one 33-byte frame about every 4 seconds.",
+        "data": {
+          "name": "Name",
+          "host": "EW-11 host",
+          "port": "TCP port"
+        }
+      },
+      "reconfigure": {
+        "title": "CN30 bridge",
+        "description": "The integration checks for one checksum-valid frame before saving. It does not send a command.",
+        "data": {
+          "name": "Name",
+          "host": "EW-11 host",
+          "port": "TCP port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot open the EW-11 TCP port. Check the host, and that the dongle is on the LAN.",
+      "timeout": "The port opened, but no CN30 bytes arrived in 12 seconds. Confirm 600 8N1, UART protocol NONE, and that no other program is connected to port 502.",
+      "no_frame": "Bytes arrived, but none was a checksum-valid 33-byte FE AA frame. Check A/B polarity and that UART protocol is NONE, not Modbus."
+    },
+    "abort": {
+      "already_configured": "This EW-11 host is already configured.",
+      "reconfigure_successful": "Bridge settings updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "CN30 status",
+        "description": "Entities go unavailable when no valid frame arrives within this many seconds. The heater normally broadcasts about every 4 seconds.",
+        "data": {
+          "stale_seconds": "Stale after"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "t5c": {
+        "name": "T5L Tank",
+        "description": "T5L tank temperature from CN30 byte 16. Byte 23 copies it. Scale (raw * 0.5) - 15."
+      },
+      "t3": {
+        "name": "T3 Evaporator",
+        "description": "T3 evaporator temperature from CN30 byte 15."
+      },
+      "t4": {
+        "name": "T4 Ambient",
+        "description": "T4 ambient temperature from CN30 byte 24."
+      },
+      "tp": {
+        "name": "TP Discharge Air",
+        "description": "TP discharge air from CN30 byte 22 as an unscaled integer °C."
+      },
+      "eev": {
+        "name": "EEV",
+        "description": "Electronic expansion valve opening from CN30 byte 20."
+      },
+      "th": {
+        "name": "TH Suction",
+        "description": "TH suction is not a separate byte in the 33-byte CN30 frame."
+      },
+      "target": {
+        "name": "Target temperature"
+      },
+      "mode_max": {
+        "name": "Mode maximum"
+      },
+      "mode_min": {
+        "name": "Mode minimum"
+      },
+      "mode_code": {
+        "name": "Mode code"
+      },
+      "last_frame": {
+        "name": "Last frame"
+      }
+    },
+    "binary_sensor": {
+      "element": {
+        "name": "Element",
+        "description": "On when CN30 byte 21 is non-zero. That bit tracks the element glyph and can be set while the mode pair is Off."
+      },
+      "timer": {
+        "name": "Timer",
+        "description": "On when the timer bit 0x10 is set on mode byte 5 or 6."
+      },
+      "keypad_lock": {
+        "name": "Keypad lock bit",
+        "description": "Byte 11 bit 0x20. The padlock glyph can stay lit after this bit clears."
+      }
+    }
+  }
+}

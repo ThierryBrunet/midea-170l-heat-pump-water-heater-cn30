@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Midea 170L · CN30</title>
+  <style>
+    :root {
+      --bg: #1a1f24; --lcd: #0a1a12; --lcd-fg: #7dff9a; --lcd-dim: #3a6b48;
+      --accent: #e87722; --btn: #2a333c; --fail: #e24a4a; --ok: #3dcc6e; --muted: #8a97a3;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: #e8eef2; min-height: 100vh; }
+    header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c353d; }
+    header h1 { font-size: 1.05rem; margin: 0; font-weight: 600; }
+    header .meta { color: var(--muted); font-size: 0.85rem; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 20px; display: grid; gap: 20px; }
+    .unit { background: linear-gradient(#2b3238, #1c2228); border-radius: 16px; padding: 18px; box-shadow: 0 12px 32px #0006; }
+    .bezel { background: #111; border-radius: 10px; padding: 14px; }
+    .lcd {
+      background: var(--lcd); color: var(--lcd-fg); font-family: "Cascadia Mono", Consolas, monospace;
+      border-radius: 6px; padding: 16px 18px; min-height: 180px; letter-spacing: 0.04em;
+    }
+    .lcd .row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .lcd .big { font-size: 2.4rem; line-height: 1.1; }
+    .lcd .dim { color: var(--lcd-dim); }
+    .keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+    button {
+      background: var(--btn); color: #e8eef2; border: 0; border-radius: 8px;
+      padding: 12px 8px; font-size: 0.9rem; cursor: pointer;
+    }
+    button:hover { filter: brightness(1.12); }
+    button.on { background: var(--accent); color: #111; font-weight: 600; }
+    button:disabled { opacity: 0.55; cursor: default; }
+    .temps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; font-family: Consolas, monospace; font-size: 0.82rem; color: var(--muted); }
+    @media (max-width: 640px) {
+      .temps, .keys { grid-template-columns: repeat(2, 1fr); }
+      .lcd .big { font-size: 2rem; }
+      header { align-items: flex-start; gap: 8px; flex-direction: column; }
+    }
+    .temps div { background: #161c20; padding: 8px 10px; border-radius: 6px; }
+    .temps b { color: #d6e2ea; display: block; font-size: 1rem; }
+    .banner { padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; }
+    .banner.ok { background: #16351f; color: var(--ok); }
+    .banner.fail { background: #3a1518; color: var(--fail); }
+    .selftest { background: #22282e; border-radius: 12px; padding: 16px; }
+    .selftest h2 { margin: 0 0 10px; font-size: 1rem; }
+    .steps { font-family: Consolas, monospace; font-size: 0.8rem; white-space: pre-wrap; }
+    .pass { color: var(--ok); } .fail { color: var(--fail); }
+    .note { color: var(--muted); font-size: 0.85rem; margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Chromagen Midea HP170 · Wire Control CN30</h1>
+    <div class="meta">EW-11 · 192.168.31.219:502 · 600 8N1 · read-only</div>
+  </header>
+  <div class="wrap">
+    <div id="banner" class="banner fail">Connecting…</div>
+    <div class="unit">
+      <div class="bezel">
+        <div class="lcd">
+          <div class="row dim"><span>MIDEA 170L · T5</span><span id="clk">--:--</span></div>
+          <div class="row"><span class="big" id="tank">--</span><span id="modeLine">—</span></div>
+          <div class="row"><span id="setpoint">SET --</span><span id="pwrLine">POWER --</span></div>
+          <div class="row dim" id="timerLine">TIMER —</div>
+          <div class="row dim" id="limitLine">LIMITS —</div>
+          <div class="row dim" id="wifiLine">WIFI —</div>
+          <div class="row dim" id="linkLine">LINK —</div>
+        </div>
+        <div class="temps" id="temps"></div>
+      </div>
+      <div class="keys">
+        <button id="btnPower" disabled>Power</button>
+        <button id="btnEco" disabled>Eco</button>
+        <button id="btnHyb" disabled>Hybrid</button>
+        <button id="btnEh" disabled>E-Heater</button>
+      </div>
+      <p class="note">Keys follow the last CN30 frame. Writes are not sent (MCU ignores cloned status frames).</p>
+    </div>
+    <div class="selftest">
+      <h2>Self-test (EW-11 CN30)</h2>
+      <p class="note">Link, last frame, checksum, mode, setpoint, tank water, evaporator, outdoor, and suction.</p>
+      <button onclick="selftest()">Run self-test</button>
+      <div class="steps" id="steps"></div>
+    </div>
+  </div>
+<script>
+  const labels = { eco: "ECO", performance: "HYBRID", electric: "E-HEAT", off: "OFF" };
+
+  async function api(path, body) {
+    const opt = body === undefined ? {} : {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}),
+    };
+    const r = await fetch(path, opt);
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || r.statusText);
+    return j;
+  }
+
+  function render(s) {
+    const b = document.getElementById("banner");
+    const last = (s.cn30 || {}).last;
+    if (!s.connected) {
+      b.className = "banner fail";
+      b.textContent = (s.errors && s.errors[0]) || ("No CN30 frames from " + (s.link || "EW-11"));
+    } else {
+      b.className = "banner ok";
+      const age = s.cn30 && s.cn30.age_s != null ? s.cn30.age_s + "s ago" : "";
+      b.textContent = "CN30 " + (s.link || "") + "  frames=" + ((s.cn30 && s.cn30.frames) || 0) + "  " + age;
+    }
+    const t = (s.temps) || {};
+    document.getElementById("tank").textContent = t.t5c != null ? Number(t.t5c).toFixed(1) + "°" : "--";
+    document.getElementById("modeLine").textContent = labels[s.operation] || labels[s.mode] || s.mode || "—";
+    document.getElementById("setpoint").textContent = s.target_c != null ? "SET " + s.target_c.toFixed(0) + "°" : "SET —";
+    document.getElementById("pwrLine").textContent = s.power ? "POWER ON" : "POWER OFF";
+    document.getElementById("timerLine").textContent = "TIMER " + (s.timer ? "ON" : "OFF");
+    const lim = (s.mode_min_c != null && s.mode_max_c != null)
+      ? (s.mode_min_c + "–" + s.mode_max_c + "°C") : "—";
+    document.getElementById("limitLine").textContent = "LIMITS " + lim;
+    const w = s.wifi || {};
+    const wifiTxt = w.rssi == null
+      ? ("WIFI " + (w.error || "—"))
+      : ("WIFI " + (w.ssid || "") + "  " + w.rssi + "/100  " + (w.state || ""));
+    document.getElementById("wifiLine").textContent = wifiTxt;
+    document.getElementById("btnPower").classList.toggle("on", !!s.power);
+    document.getElementById("btnEco").classList.toggle("on", s.mode === "eco" && s.power);
+    document.getElementById("btnHyb").classList.toggle("on", s.mode === "performance" && s.power);
+    document.getElementById("btnEh").classList.toggle("on", s.mode === "electric" && s.power);
+    const cells = [
+      ["T5L", t.t5c, 1, " °C"],
+      ["T3 Evaporator", t.t3, 1, " °C"],
+      ["T4 Ambient", t.t4, 1, " °C"],
+      ["TP Discharge", t.tp, 0, " °C"],
+      ["EEV", s.eev, 0, ""],
+    ];
+    document.getElementById("temps").innerHTML = cells.map(([n,v,d,u]) =>
+      `<div>${n}<b>${v == null ? "—" : Number(v).toFixed(d) + u}</b></div>`).join("");
+    document.getElementById("linkLine").textContent = "LINK " + (s.link || "—");
+    document.getElementById("clk").textContent =
+      new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  async function refresh() {
+    try { render(await api("/api/status")); }
+    catch (e) {
+      document.getElementById("banner").className = "banner fail";
+      document.getElementById("banner").textContent = String(e);
+    }
+  }
+
+  async function selftest() {
+    const el = document.getElementById("steps");
+    el.textContent = "Running (up to 16s)…";
+    try {
+      const r = await api("/api/selftest", {});
+      const stepName = {
+        temp_t5c: "T5 Tank",
+        temp_t3: "T3 Evaporator",
+        temp_t4: "T4 Ambient",
+        temp_th: "TH Suction",
+      };
+      el.innerHTML = r.steps.map(s => {
+        const hint = (!s.ok && s.hint) ? "\n      → " + s.hint : "";
+        const name = stepName[s.name] || s.name || "";
+        return `<span class="${s.ok ? "pass" : "fail"}">${s.ok ? "PASS" : "FAIL"}</span>  ${name.padEnd(16)}  ${s.detail}${hint}`;
+      }).join("\n");
+    } catch (e) { el.textContent = String(e); }
+    refresh();
+  }
+
+  refresh();
+  setInterval(refresh, 3000);
+</script>
+</body>
+</html>
