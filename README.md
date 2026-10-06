@@ -251,9 +251,11 @@ Confirmed on both harnesses:
 | Path | When | Live pair | Result |
 |---|---|---|---|
 | Kali USB-RS485 (`cn30_timed.py --tx copy`) | 2026-10 | Off `04:04` | Icon ② on, **E2** |
-| EW-11 TCP `:502` (`cn30_timed.py --host … --tx copy`) | 2026-10-06 | Off stored Eco+timer `19:18` | Icon ② on, **E2** (same as Kali) |
+| EW-11 TCP `:502` (`cn30_timed.py --host … --tx copy`) | 2026-10-06 | Off stored Eco+timer `19:18` | Icon ② on, **E2** |
 
-Do **not** send a 33-byte copy while Off. The same copy while Economy was running (`01 01`) did not latch E2 and did not light the glyph.
+After the EW-11 copy, **E2 could be cleared from the keypad**, but **icon ② stayed on and could not be cleared**. The keypad then **locked**: Power ON was impossible. **Mains power cycle** was required to regain the pad. After a mains cycle this unit cold-boots into E-Heater (`0C 08`); that is not a command we sent.
+
+Do **not** send a 33-byte copy while Off. Glyph ② is a stuck wire-controller presence mark, not a useful control. The same copy while Economy was running (`01 01`) did not latch E2 and did not light the glyph.
 
 Closed without a hit (do not rerun on a live tank): patched clones, keypad-shaped shorts, 1-byte and 2-byte opcode walks, Modbus FC06/FC16 at 600–19200, XYE probes, and the **CN2/CN3 yellow/blue** ribbon tap (matrix, not RS-485 — see §5).
 
@@ -278,7 +280,7 @@ All integration code, the Lovelace panel, the CN30 decoder, the Kali/Windows ver
 
 - 240 VAC inside the HWS cover is **licensed-electrician only**.
 - Do not opcode-spray while the element can run.
-- Clear E2 without cycling mains: hold CANCEL until the padlock goes out, then TIME ON + CANCEL together.
+- Clear E2 without cycling mains: hold CANCEL until the padlock goes out, then TIME ON + CANCEL together. That does **not** clear icon ② after an Off-state 33-byte copy; the pad can stay locked until a **mains cycle**.
 
 Manual: [`docs/Manual_Book_170L_Heat_pump_water_heater.pdf`](docs/Manual_Book_170L_Heat_pump_water_heater.pdf). Extra hardware notes: [`docs/hardware-midea-ew11.md`](docs/hardware-midea-ew11.md).
 
