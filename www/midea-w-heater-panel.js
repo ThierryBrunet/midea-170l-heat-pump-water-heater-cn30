@@ -449,6 +449,25 @@ class MideaWHeaterPanel extends HTMLElement {
     return marks;
   }
 
+  _powerBands(end) {
+    const bands = [];
+    let from = null;
+    for (const point of this._powerSeries) {
+      if (point.value === 1) {
+        if (from == null) {
+          from = point.time;
+        }
+      } else if (from != null) {
+        bands.push({ from, to: point.time });
+        from = null;
+      }
+    }
+    if (from != null) {
+      bands.push({ from, to: end });
+    }
+    return bands;
+  }
+
   _drawChart(force) {
     const canvas = this.shadowRoot?.querySelector("#temp-chart");
     const legend = this.shadowRoot?.querySelector("#chart-legend");
@@ -520,16 +539,14 @@ class MideaWHeaterPanel extends HTMLElement {
       ctx.fillStyle = "#3a6b48";
       ctx.fillText(`${tick}°`, 2, y + 4);
     }
-    if (this._powerSeries.length) {
-      for (let i = 0; i < this._powerSeries.length; i += 1) {
-        const point = this._powerSeries[i];
-        if (point.value !== 1) {
-          continue;
-        }
-        const next = i < this._powerSeries.length - 1 ? this._powerSeries[i + 1].time : end;
-        ctx.fillStyle = "rgba(125, 255, 154, 0.12)";
-        ctx.fillRect(xAt(point.time), pad.top, Math.max(1, xAt(next) - xAt(point.time)), plotH);
+    ctx.fillStyle = "rgba(125, 255, 154, 0.22)";
+    for (const band of this._powerBands(end)) {
+      const x0 = clipX(xAt(band.from));
+      const x1 = clipX(xAt(band.to));
+      if (x1 <= x0) {
+        continue;
       }
+      ctx.fillRect(x0, pad.top, x1 - x0, plotH);
     }
     for (const line of this._chartSeries) {
       if (!line.points.length) {

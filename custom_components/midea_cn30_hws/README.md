@@ -56,13 +56,17 @@ A second TCP client can take the serial stream. That includes
 
 ## Install
 
+Full walkthrough (hardware + Lovelace panel): repository root [README](../../README.md#6-replicate-the-full-home-assistant-integration).
+
 1. Copy this folder to the Home Assistant config directory:
 
    `config/custom_components/midea_cn30_hws/`
 
-2. Restart Home Assistant.
-3. Settings → Devices & services → Add integration → **Midea Water Heat Pump (CN30)**.
-4. Host `192.168.31.219`, port `502`. Setup waits for one checksum-valid frame and does not send a command.
+2. Copy `www/midea-w-heater-panel.js` to `config/www/` and add Lovelace resource `/local/midea-w-heater-panel.js?v=8`.
+3. Stop any other client on EW-11 TCP 502.
+4. Restart Home Assistant.
+5. Settings → Devices & services → Add integration → **Midea Water Heat Pump (CN30)**.
+6. Host of the EW-11, port `502`. Setup waits for one checksum-valid frame and does not send a command.
 
 The water heater entity has no target or mode controls. Automations can read
 `current_temperature`, `current_operation`, and the sensors. A service call that
@@ -78,8 +82,11 @@ logger:
 
 ## Why control is absent
 
-The main controller masters CN30 and broadcasts its status. Copies of that
-broadcast, short `FE AA` frames, and Modbus writes on this header did not move
-byte 29 or the mode pair. Control stays off until a frame is shown to do that
-on the next heater status frame. Tracking issue:
+The main controller masters CN30 and broadcasts its status. The only WRITE
+that has been observed to do anything is a finished 33-byte status copy while
+Off, which lit fascia icon ② (Wire Controller) and latched E2. It did not
+move byte 29 or the mode pair. Discussion:
+https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues
 https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1
+
+Developed 100% with Grok Build (xAI).
