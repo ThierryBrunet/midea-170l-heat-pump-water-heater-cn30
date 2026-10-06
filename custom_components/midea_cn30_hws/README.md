@@ -86,7 +86,7 @@ The main controller masters CN30 and broadcasts its status. The only WRITE
 that has been observed to do anything is a finished 33-byte status copy while
 Off, which lit fascia icon ② (Wire Controller) and latched E2. It did not
 move byte 29 or the mode pair. Discussion:
-https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues
+https://community.home-assistant.io/t/chromagen-midea-170l-heat-pump-hot-water-system-modbus-integration-success/773718/53
 https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1
 
 Developed 100% with Grok Build (xAI).

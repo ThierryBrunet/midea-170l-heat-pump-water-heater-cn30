@@ -1,5 +1,9 @@
 # Midea 170L Heat Pump Water Heater via CN30
 
+![HA WH Dashboard](docs/HA%20WH%20Dashboard-2.png)
+
+*Filename: `HA WH Dashboard-2.png` — finished product: Home Assistant **Midea W-Heater** dashboard reading live CN30 (T5 as the large LCD, SET for the setpoint, 3-day chart with tariff bands). Keys follow state and do not send commands.*
+
 Read-only **Home Assistant** integration and RS-485 research for a Chromagen / Midea **HP170** (170 L).
 
 | | |
@@ -12,7 +16,9 @@ Read-only **Home Assistant** integration and RS-485 research for a Chromagen / M
 
 This is **not** [0xAHA/Midea-Heat-Pump-HA](https://github.com/0xAHA/Midea-Heat-Pump-HA). That community integration talks **9600 8N1 Modbus** to a **different** main board. On this PCB it times out. Do not install it on the CN30 EW-11 dongle.
 
-**Ongoing discussion:** [GitHub Issues](https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues) — start at **[#1 CN30 WRITE protocol unknown](https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1)**.
+**Ongoing discussion:** [Home Assistant Community — Chromagen/Midea 170L thread](https://community.home-assistant.io/t/chromagen-midea-170l-heat-pump-hot-water-system-modbus-integration-success/773718/53)
+
+WRITE tracking on this repo: [GitHub issue #1](https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1).
 
 ---
 
@@ -229,9 +235,9 @@ Acceptance is the **next heater status frame** moving byte 29 or bytes 5–6. A 
 
 Hopefully someone who can sniff a **real Wire Monitor** on this header will crack the remaining WRITE frames.
 
-**Discussion is on GitHub Issues:**
+**Ongoing discussion:**
 
-- https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues
+- https://community.home-assistant.io/t/chromagen-midea-170l-heat-pump-hot-water-system-modbus-integration-success/773718/53
 - https://github.com/ThierryBrunet/midea-170l-heat-pump-water-heater-cn30/issues/1
 
 ---
