@@ -23,7 +23,7 @@ The journey started on the main controller with the cover off, identifying the p
 
 **IC3** is a Freescale **MC9S08AC128CLKE** (silk `MC9S08AC128CLKE`). That is the tank controller. There is no rotary S3 on this board. M-Thermal hydronic notes (H:0–H:6, CN14, FC06/FC16) do not apply.
 
-![Main controller MCU IC3](docs/IMG20260928091749.jpg)
+![Main controller MCU IC3](docs/MCU-MAX285-CNN30.jpg)
 
 ### RS-485 PHY and protection
 
@@ -35,17 +35,17 @@ Beside the red header:
 
 Those parts are why this is treated as RS-485 A/B + GND, not a TTL UART or a 12 V ribbon.
 
-### Red CN30 3-pin (A+, B−, GND)
+### Red CN30 3-pin (A+, GND, B−)
 
-Looking at the white 3-pin housing with the red latch on the right:
+Looking at the white 3-pin housing (red latch, wires leaving to the right):
 
-| Pin (top → bottom) | Function |
-|---|---|
-| 1 (upper gold contact) | **B−** |
-| 2 (middle) | **GND** |
-| 3 (lower) | **A+** |
+| Pin (top → bottom) | Wire in this photo | Function |
+|---|---|---|
+| 1 (top) | red | **A+** |
+| 2 (middle) | black | **GND** |
+| 3 (bottom) | black | **B−** |
 
-![CN30 pinout A+ B− GND](docs/cn30-pinout-annotated.jpg)
+![CN30 pinout A+ GND B−](docs/cn30-pinout-2-annotated.jpg)
 
 Connect **data pair + GND only**. Do not put heater VCC or ribbon power on A or B. Power an Elfin EW-11 from a separate 5–18 V supply, and tie its GND to heater bus GND.
 
@@ -162,7 +162,7 @@ The built-in keypad is a **local matrix**. Presses do not emit serial key codes 
 
 The fascia “Wire Controller” glyph is **Fig. 6-2 icon ②**, a reserved function in the manual: it lights when a wire controller is connected.
 
-![Wire Controller glyph #2](docs/Screenshot%202026-09-28%20164333.png)
+![Wire Controller glyph #2](docs/Wire%20Controller%20Display%20Glyph.png)
 
 The only TX that has been observed to light that glyph is a **finished 33-byte status copy** injected on CN30 while the unit was Off (`04 04`). UART SentFrames/SendBytes rose. The same class of copy **also latched keypad E2** (tank / wired-controller communication). It did **not** move setpoint byte 29 or the mode pair.
 
