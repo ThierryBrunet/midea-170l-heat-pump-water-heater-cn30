@@ -21,7 +21,7 @@ if str(ROOT.parent) not in sys.path:
     sys.path.insert(0, str(ROOT.parent))
 
 from verify.cn30 import checksum33  # noqa: E402
-from verify.serial_link import DEFAULT_BAUD, DEFAULT_SERIAL, SerialLink  # noqa: E402
+from verify.serial_link import DEFAULT_BAUD, DEFAULT_SERIAL, open_link  # noqa: E402
 
 FRAME_LEN = 33
 SOF = b"\xfe\xaa"
@@ -646,7 +646,9 @@ def self_check() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="CN30 timestamped listen / one TX")
-    parser.add_argument("--serial", default=DEFAULT_SERIAL)
+    parser.add_argument("--serial", default="")
+    parser.add_argument("--host", default="")
+    parser.add_argument("--port", type=int, default=502)
     parser.add_argument("--baud", type=int, default=DEFAULT_BAUD)
     parser.add_argument(
         "--tx",
@@ -678,15 +680,18 @@ def main() -> int:
     if args.delay < 0:
         print("REFUSED --delay must be >= 0")
         return 2
+    serial = args.serial or (DEFAULT_SERIAL if not args.host else None)
+    host = args.host or None
+    where = f"{host}:{args.port}" if host else f"{serial} @{args.baud}"
     print(
-        f"CN30 timed {args.serial} @{args.baud} tx={args.tx} "
+        f"CN30 timed {where} tx={args.tx} "
         f"expect={','.join(_hex_pair(p) for p in args.expect) or '-'} "
         f"delay={args.delay:.3f}s baseline={args.baseline}",
         flush=True,
     )
     try:
-        link = SerialLink(args.serial, args.baud, timeout=0.05)
-    except OSError as exc:
+        link = open_link(serial=serial, baud=args.baud, host=host, port=args.port)
+    except (OSError, ValueError) as exc:
         print(f"FAIL link {exc}")
         return 2
     try:

@@ -244,9 +244,16 @@ The built-in keypad is a **local matrix**. Presses do not emit serial key codes 
 
 *Filename: `Wire Controller Display Glyph.png` — manual Fig. 6-2 icon **② WIRE CONTROLLER** (reserved function).*
 
-**The only successful WRITE observed** is a finished **33-byte status copy** (`FE AA … 55`) injected while Off (`04 04`). That frame **lit icon ②**. It also **latched keypad E2**. It did **not** move setpoint byte 29 or the mode pair. UART SentFrames went up; that is not command acceptance.
+**The only successful WRITE observed** is a finished **33-byte status copy** (`FE AA … 55`) injected while the unit is Power OFF. That frame **lit icon ②**. It also **latched keypad E2**. It did **not** move setpoint byte 29 or the mode pair.
 
-Do **not** send a 33-byte copy while Off `04 04`.
+Confirmed on both harnesses:
+
+| Path | When | Live pair | Result |
+|---|---|---|---|
+| Kali USB-RS485 (`cn30_timed.py --tx copy`) | 2026-10 | Off `04:04` | Icon ② on, **E2** |
+| EW-11 TCP `:502` (`cn30_timed.py --host … --tx copy`) | 2026-10-06 | Off stored Eco+timer `19:18` | Icon ② on, **E2** (same as Kali) |
+
+Do **not** send a 33-byte copy while Off. The same copy while Economy was running (`01 01`) did not latch E2 and did not light the glyph.
 
 Closed without a hit (do not rerun on a live tank): patched clones, keypad-shaped shorts, 1-byte and 2-byte opcode walks, Modbus FC06/FC16 at 600–19200, XYE probes, and the **CN2/CN3 yellow/blue** ribbon tap (matrix, not RS-485 — see §5).
 
