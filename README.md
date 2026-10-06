@@ -44,7 +44,7 @@ The cover came off so the ICs next to the red header could be identified.
 
 ![MCU MAX CN30](docs/MCU-MAX285-CNN30.jpg)
 
-*Filename: `MCU-MAX285-CNN30.jpg` — **IC3** Freescale **MC9S08AC128CLKE** (tank MCU). **IC9** beside CN30 is a **MAX14780EESA+** RS-485 transceiver (not a MAX285). **TUS1 / TUS2 / TUS3** are TVS diodes on the data pair. Silk **WireControl CN30** is on the board edge.*
+*Filename: `MCU-MAX285-CNN30.jpg` — **IC3** Freescale **MC9S08AC128CLKE** (tank MCU). **IC9** beside CN30 is a **MAX14780EESA+** RS-485 transceiver. **TUS1 / TUS2 / TUS3** are TVS diodes on the data pair. Silk **WireControl CN30** is on the board edge.*
 
 ![CN30 header](docs/cn30-pinout.jpg)
 
@@ -136,7 +136,26 @@ Do not run this USB adapter and the EW-11 on CN30 at the same time.
 
 ---
 
-## 5. What a live frame looks like
+## 5. Failed attempt: keypad/display ribbons (CN2 / CN3)
+
+The fascia is two black looms into **CN2** and **CN3** (not red CN30). The **blue paint marks** on those housings were applied **at the factory**, so they were treated as a possible test/data pair.
+
+![Keypad-display connectors with original blue marks](docs/Keypad-display%20connectors%20with%20original%20blue%20marks.jpg)
+
+*Filename: `Keypad-display connectors with original blue marks.jpg` — factory blue marks on **CN2** and **CN3**. The associated **yellow and blue** wires were the pair probed in this attempt.*
+
+That yellow/blue pair was metered and sniffed as if it were RS-485 (EW-11 at 600–19200 8N1, key-mash, A/B swap). Results:
+
+- Idle sat near **0 V** and only moved **while a key was held** (matrix scan), not idle-high UART and not a quiet RS-485 mark.
+- Some pins on these ribbons are **~5 V VCC** or **~10 V AC** LCD/backlight power — not a data pair. Do not put those on an EW-11 A/B.
+- A 19200 tap produced either all-`0xFF` idle or **CC/CE bursts timed with keypresses**. `verify/captures/display-19200-20260921-161950.bin` decodes as an oversampled square wave (`verify/decode_19200.py`), not `FE AA` frames.
+- Unplugging these ribbons raises **E2** (display ↔ main PCB).
+
+The hunt was **aborted** once it was clear yellow/blue are **keypad/display matrix** (and LCD drive), not RS-485. Fifteen conductors on the two connectors match glass + keys. Proven serial on this PCB remains **CN30 only**.
+
+---
+
+## 6. What a live frame looks like
 
 Canonical frames are **33 bytes**, about every 4 s:
 
@@ -169,7 +188,7 @@ python verify/web_app.py
 
 ---
 
-## 6. Replicate the full Home Assistant integration
+## 7. Replicate the full Home Assistant integration
 
 ![HA WaterHeater Dashboard](docs/HA%20WaterHeater%20Dasboard.png)
 
@@ -217,7 +236,7 @@ More entity detail: [`custom_components/midea_cn30_hws/README.md`](custom_compon
 
 ---
 
-## 7. WRITE: only glyph ② has been lit
+## 8. WRITE: only glyph ② has been lit
 
 The built-in keypad is a **local matrix**. Presses do not emit serial key codes on CN30. The heater **masters** the bus and broadcasts status. Copies of that broadcast are not setpoint/mode commands.
 
@@ -229,7 +248,7 @@ The built-in keypad is a **local matrix**. Presses do not emit serial key codes 
 
 Do **not** send a 33-byte copy while Off `04 04`.
 
-Closed without a hit (do not rerun on a live tank): patched clones, keypad-shaped shorts, 1-byte and 2-byte opcode walks, Modbus FC06/FC16 at 600–19200, XYE probes.
+Closed without a hit (do not rerun on a live tank): patched clones, keypad-shaped shorts, 1-byte and 2-byte opcode walks, Modbus FC06/FC16 at 600–19200, XYE probes, and the **CN2/CN3 yellow/blue** ribbon tap (matrix, not RS-485 — see §5).
 
 Acceptance is the **next heater status frame** moving byte 29 or bytes 5–6. A beep is not a pass.
 

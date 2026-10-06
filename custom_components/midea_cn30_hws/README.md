@@ -56,7 +56,7 @@ A second TCP client can take the serial stream. That includes
 
 ## Install
 
-Full walkthrough (hardware + Lovelace panel): repository root [README](../../README.md#6-replicate-the-full-home-assistant-integration).
+Full walkthrough (hardware + Lovelace panel): repository root [README](../../README.md#7-replicate-the-full-home-assistant-integration).
 
 1. Copy this folder to the Home Assistant config directory:
 
